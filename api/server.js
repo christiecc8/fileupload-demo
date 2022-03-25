@@ -7,6 +7,7 @@ const multiparty = require('multiparty');
 var util = require('util');
 
 const url = 'https://api.pinata.cloud/pinning/pinFileToIPFS'
+const imageUrl = 'https://gateway.pinata.cloud/ipfs/'
 const pinataApiKey='ab7a2d0d4fe81f7f21ce'
 const pinataSecretApiKey='f7798043ec32dcc7c8f7b5870651579b2a76f855e556eabb2689c33cc51093bc'
 const pinata = pinataSDK(pinataApiKey, pinataSecretApiKey);
@@ -21,43 +22,55 @@ server.get('/testAPI', function(request, response) {
   response.send("API is up and working!");
 });
 
-server.post('/uploadFile', function (request, response) {
+/* This is the API route that the front end calls to initiate IPFS file upload */
+server.post('/uploadFile', async function (request, response, next) {
   response.header("Access-Control-Allow-Origin", "*");
 	response.header("Access-Control-Allow-Headers", "X-Requested-With");
   
-  var form = new multiparty.Form();
+  var form = new multiparty.Form({
+    autoFields: true
+  });
+  var nftName;
+  var nftDesc;
+  var nftUrl;
+
   form.on('error', function(err) {
     console.log('Error parsing form: ' + err.stack);
   });
   
+  form.on('field', function(name, value) {
+    console.log('field: ' + name + ' with value ' + value);
+    if (name === 'nftName') {
+      nftName = value;
+    } else if (name === 'nftDescription') {
+      nftDesc = value;
+    }
+  })
+
   // Parts are emitted when parsing the form
   form.on('part', function(part) {
-    // You *must* act on the part by reading it
-    // NOTE: if you want to ignore it, just call "part.resume()"
-  
     if (part.filename === undefined) {
-      // filename is not defined when this is a field and not a file
-      console.log('got field named ' + part.name);
       // ignore field's content
       part.resume();
     }
   
     if (part.filename !== undefined) {
       // filename is defined when this is a file
-      console.log('got file named ' + part.name);
+      console.log('got file named ' + part.filename);
+      
       pinata.pinFileToIPFS(part).then((result) => {
-          //handle results here
           console.log(result);
+          nftUrl = imageUrl + result.IpfsHash;
+          console.log(nftUrl);
       }).catch((err) => {
-          //handle error here
           console.log(err);
       });
-      // ignore file's content here
       part.resume();
     }
   
     part.on('error', function(err) {
       // decide what to do
+      response.sendStatus(200);
     });
   });
   
@@ -65,7 +78,7 @@ server.post('/uploadFile', function (request, response) {
   form.on('close', function() {
     console.log('Upload completed!');
   });
-  
+
   // Parse req
   form.parse(request);
 });
