@@ -6,6 +6,8 @@ const multiparty = require('multiparty');
 var util = require('util');
 var pinata_uploader = require("./utils.js");
 
+const imageUrl = 'https://gateway.pinata.cloud/ipfs/'
+
 // const pinataSDK = require('@pinata/sdk');
 // const pinataApiKey='ab7a2d0d4fe81f7f21ce'
 // const pinataSecretApiKey='f7798043ec32dcc7c8f7b5870651579b2a76f855e556eabb2689c33cc51093bc'
@@ -27,7 +29,7 @@ server.get('/testAPI', function(request, response) {
 });
 
 /* This is the API route that the front end calls to initiate IPFS file upload */
-server.post('/uploadFile', function (request, response, next) {
+server.post('/uploadFile', async function (request, response) {
   response.header("Access-Control-Allow-Origin", "*");
 	response.header("Access-Control-Allow-Headers", "X-Requested-With");
   
@@ -37,6 +39,7 @@ server.post('/uploadFile', function (request, response, next) {
   var nftName;
   var nftDesc;
   var nftUrl;
+  var nftResponse;
 
   form.on('error', function(err) {
     console.log('Error parsing form: ' + err.stack);
@@ -61,26 +64,45 @@ server.post('/uploadFile', function (request, response, next) {
     if (part.filename !== undefined) {
       // filename is defined when this is a file
       console.log('got file named ' + part.filename);
-      let response = await pinata_uploader(part);
+      
+      let response = await pinata_uploader.uploadImage(part);
       console.log("The response is")
       console.log(response);
-      console.log(response[IpfsHash]);
+      nftUrl = imageUrl + response.IpfsHash;
+      console.log("Nft name is " + nftName + " desc is " + nftDesc + " and url is: " + nftUrl);
+      
+      let imageJson = {'name': nftName, 'description': nftDesc, image: nftUrl};
+      pinata_uploader.uploadUri(imageJson).then((result) => {
+        nftResponse = result;
+        console.log("This is the nft reponse:")
+        console.log(nftResponse);
+      }).catch(error => {
+        throw new Error(error);
+      });
+      part.resume();
     }
   
     part.on('error', function(err) {
       // decide what to do
-      response.sendStatus(200);
+      console.log("error");
     });
   });
   
   // Close emitted after form parsed
   form.on('close', function() {
     console.log('Upload completed!');
-    console.log("Nft name is " + nftName + " desc is " + nftDesc + " and url is: " + nftUrl);
   });
 
-  // Parse req
   form.parse(request);
+  // Parse req
+  // try {
+  //   form.parse(request);
+  // } catch (error) {
+  //   console.log("Error parsing");
+  // } finally {
+  //   console.log("All done~");
+  //   response.json(nftResponse);
+  // }
 });
 
 
