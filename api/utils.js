@@ -1,5 +1,7 @@
-const pinataApiKey='ab7a2d0d4fe81f7f21ce';
-const pinataSecretApiKey='f7798043ec32dcc7c8f7b5870651579b2a76f855e556eabb2689c33cc51093bc';
+require('dotenv').config();
+
+const pinataApiKey = process.env.PINATA_API_KEY;
+const pinataSecretApiKey = process.env.PINATA_API_SECRET_KEY;
 const pinataSDK = require('@pinata/sdk');
 const pinata = pinataSDK(pinataApiKey, pinataSecretApiKey);
 
