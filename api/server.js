@@ -6,17 +6,7 @@ const multiparty = require('multiparty');
 var util = require('util');
 var pinata_uploader = require("./utils.js");
 
-const imageUrl = 'https://gateway.pinata.cloud/ipfs/'
-
-// const pinataSDK = require('@pinata/sdk');
-// const pinataApiKey='ab7a2d0d4fe81f7f21ce'
-// const pinataSecretApiKey='f7798043ec32dcc7c8f7b5870651579b2a76f855e556eabb2689c33cc51093bc'
-// const pinata = pinataSDK(pinataApiKey, pinataSecretApiKey);
-// const imageUrl = 'https://gateway.pinata.cloud/ipfs/'
-
-// const pinataApiKey='ab7a2d0d4fe81f7f21ce'
-// const pinataSecretApiKey='f7798043ec32dcc7c8f7b5870651579b2a76f855e556eabb2689c33cc51093bc'
-// const pinata = pinataSDK(pinataApiKey, pinataSecretApiKey);
+const ipfsURL = 'https://gateway.pinata.cloud/ipfs/'
 
 const server = express();
 server.use(bodyParser.json());
@@ -46,7 +36,6 @@ server.post('/uploadFile', async function (request, response) {
   });
   
   form.on('field', function(name, value) {
-    console.log('field: ' + name + ' with value ' + value);
     if (name === 'nftName') {
       nftName = value;
     } else if (name === 'nftDescription') {
@@ -56,26 +45,16 @@ server.post('/uploadFile', async function (request, response) {
 
   // Parts are emitted when parsing the form
   form.on('part', async function(part) {
-    if (part.filename === undefined) {
-      // ignore field's content
-      part.resume();
-    }
-  
     if (part.filename !== undefined) {
       // filename is defined when this is a file
-      console.log('got file named ' + part.filename);
-      
-      let response = await pinata_uploader.uploadImage(part);
-      console.log("The response is")
-      console.log(response);
-      nftUrl = imageUrl + response.IpfsHash;
-      console.log("Nft name is " + nftName + " desc is " + nftDesc + " and url is: " + nftUrl);
-      
+    
+      let imageResponse = await pinata_uploader.uploadImage(part);
+      nftUrl = ipfsURL + imageResponse.IpfsHash;
+ 
       let imageJson = {'name': nftName, 'description': nftDesc, image: nftUrl};
       pinata_uploader.uploadUri(imageJson).then((result) => {
-        nftResponse = result;
-        console.log("This is the nft reponse:")
-        console.log(nftResponse);
+        nftResponse = ipfsURL + result.IpfsHash;
+        response.json(nftResponse);
       }).catch(error => {
         throw new Error(error);
       });
@@ -94,15 +73,6 @@ server.post('/uploadFile', async function (request, response) {
   });
 
   form.parse(request);
-  // Parse req
-  // try {
-  //   form.parse(request);
-  // } catch (error) {
-  //   console.log("Error parsing");
-  // } finally {
-  //   console.log("All done~");
-  //   response.json(nftResponse);
-  // }
 });
 
 
