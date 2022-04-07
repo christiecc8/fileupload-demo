@@ -62,8 +62,11 @@ server.post('/uploadFile', async function (request, response) {
 
       pinata_uploader.uploadUri(imageJson).then((result) => {
         nftResponse = ipfsURL + result.IpfsHash;
-        console.log(result);
-        response.json(nftResponse);
+        var responseJson = {};
+        responseJson['IPFSUrl'] = (nftResponse);
+        responseJson['IPFSUri'] = (imageJson);
+        console.log(responseJson);
+        response.json(responseJson);
       }).catch(error => {
         throw new Error(error);
       });
