@@ -44,10 +44,10 @@ server.post("/uploadFile", async function (request, response) {
       console.log("Field: " + name + " value: " + value);
       if (name === "nftName") {
         nftName = value;
-        console.log(nftName);
+        console.log("Name: " + nftName);
       } else if (name === "nftDesc") {
         nftDesc = value;
-        console.log(nftDesc);
+        console.log("Description" + nftDesc);
       }
     });
 
@@ -59,7 +59,9 @@ server.post("/uploadFile", async function (request, response) {
 
         try {
           let imageResponse = await pinata_uploader.uploadImage(part);
+          console.log(imageResponse);
           nftUrl = ipfsURL + imageResponse.IpfsHash;
+          console.log("IPFS Image URL: " + nftUrl);
         } catch {
           response.sendStatus(500);
         }
@@ -103,7 +105,7 @@ server.post("/uploadFile", async function (request, response) {
 });
 
 server.get("/health-check", (req, res) => {            
-  console.log(req);
+  // console.log(req);
   console.log("hello")
   res.status(200).send({ msg: "ok" })
 })
