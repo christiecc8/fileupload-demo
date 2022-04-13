@@ -37,6 +37,7 @@ server.post("/uploadFile", async function (request, response) {
 
     form.on("error", function (err) {
       console.log("Error parsing form: " + err.stack);
+      response.sendStatus(500);
     });
 
     form.on("field", function (name, value) {
@@ -55,9 +56,14 @@ server.post("/uploadFile", async function (request, response) {
       if (part.filename !== undefined) {
         // filename is defined when this is a file
         console.log("got a file named " + part.name);
-        let imageResponse = await pinata_uploader.uploadImage(part);
-        nftUrl = ipfsURL + imageResponse.IpfsHash;
 
+        try {
+          let imageResponse = await pinata_uploader.uploadImage(part);
+          nftUrl = ipfsURL + imageResponse.IpfsHash;
+        } catch {
+          response.sendStatus(500);
+        }
+        
         let imageJson = { name: nftName, description: nftDesc, image: nftUrl };
         console.log(imageJson);
 
@@ -73,14 +79,14 @@ server.post("/uploadFile", async function (request, response) {
             response.json(responseJson);
           })
           .catch((error) => {
-            throw new Error(error);
+            response.sendStatus(500);
           });
         part.resume();
       }
 
       part.on("error", function (err) {
         // decide what to do
-        console.log("error");
+        response.sendStatus(500);
       });
     });
 
@@ -95,5 +101,12 @@ server.post("/uploadFile", async function (request, response) {
     return response.status(500).send({ msg: "internal service error srry :(" });
   }
 });
+
+server.get("/health-check", (req, res) => {            
+  console.log(req);
+  console.log("hello")
+  res.status(200).send({ msg: "ok" })
+})
+
 
 server.listen(process.env.PORT || 9000);
