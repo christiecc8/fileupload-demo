@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config()
+require('dotenv').config();
 
 const pinataApiKey = process.env.PINATA_API_KEY;
 const pinataSecretApiKey = process.env.PINATA_API_SECRET_KEY;
