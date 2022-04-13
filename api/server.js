@@ -57,16 +57,25 @@ server.post("/uploadFile", async function (request, response) {
         // filename is defined when this is a file
         console.log("got a file named " + part.name);
 
-        pinata_uploader
+        // pinata_uploader
+        //   .uploadImage(part)
+        //   .then ((result) => {
+        //     console.log(result);
+        //     nftUrl = ipfsURL + result.IpfsHash;
+        //     console.log("IPFS Image URL: " + nftUrl);
+        //   })
+        //   .catch((error) => {
+        //     response.sendStatus(500);
+        //   })
+
+        const imageResponse = await pinata_uploader
           .uploadImage(part)
-          .then ((result) => {
-            console.log(result);
-            nftUrl = ipfsURL + result.IpfsHash;
-            console.log("IPFS Image URL: " + nftUrl);
-          })
-          .catch((error) => {
-            response.sendStatus(500);
-          })
+          .catch((err) => console.log(err));
+        
+        console.log(imageResponse);
+        nftUrl = ipfsURL + imageResponse.IpfsHash;
+        console.log("NFT URL: " + nftUrl);
+        
 
         let imageJson = { name: nftName, description: nftDesc, image: nftUrl };
         console.log(imageJson);
