@@ -7,7 +7,7 @@ const cors = require("cors");
 var util = require("util");
 var pinata_uploader = require("./utils.js");
 
-const ipfsURL = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
+const ipfsURL = `https://gateway.pinata.cloud/ipfs/`;
 
 const server = express();
 server.use(cors());
