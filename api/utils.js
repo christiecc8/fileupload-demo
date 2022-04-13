@@ -8,8 +8,6 @@ const pinata = pinataSDK(pinataApiKey, pinataSecretApiKey);
 
 module.exports = {
     uploadImage:function(readStream) {
-        console.log("test key: " + pinataApiKey);
-        console.log("test secret: " + pinataSecretApiKey);
         let promise = new Promise(function(resolve, reject) { 
             resolve(pinata.pinFileToIPFS(readStream));
         });
